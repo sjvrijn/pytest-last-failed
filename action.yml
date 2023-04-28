@@ -23,6 +23,7 @@ runs:
     - name: Check cache length
       run: |
         echo "CACHE_OUTPUT_LENGTH=$( pytest --collect-only -qqq --no-header --no-summary --cache-show cache/lastfailed | sed -n '4 p' | wc -c )" >> "$GITHUB_ENV"
+      shell: bash
 
     # If some tests previously failed, i.e., a non-empty cache exists, run pytest --last-failed
     - name: Run only --last-failed
@@ -32,6 +33,7 @@ runs:
         env.CACHE_OUTPUT_LENGTH > 5
       run: |
         pytest --last-failed ${{ inputs.pytest-args }}
+      shell: bash
 
     # If 'pytest --last-failed' was skipped (i.e. no entries in cache), or succeeded
     # (i.e. last-failed tests pass again), run all tests with a clean cache
@@ -42,6 +44,7 @@ runs:
         ( steps.last_failed.outcome == 'success' || steps.last_failed.outcome == 'skipped' )
       run: |
         pytest --cache-clear ${{ inputs.pytest-args }}
+      shell: bash
 
     # Save pytest cache for future runs
     - name: Update pytest cache
