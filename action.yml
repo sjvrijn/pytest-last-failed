@@ -1,0 +1,52 @@
+name: pytest --last-failed
+description: "Run pytest with --last-failed if the previous run had failed tests"
+
+inputs:
+  pytest-args:
+    description: "Arguments to be passed on to pytest"
+    required: false
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    # Initial restore of cache, if it exists
+    - uses: actions/cache/restore@v3
+      id: cache
+      with:
+        path: .pytest_cache
+        key: pytest-cache-${{github.event.number}}
+        restore-keys:
+          pytest-cache-${{github.event.number}}-
+
+    # Determine if pytests's lastfailed cache contains any entries
+    - name: Check cache length
+      run: |
+        echo "CACHE_OUTPUT_LENGTH=$( pytest --collect-only -qqq --no-header --no-summary --cache-show cache/lastfailed | sed -n '4 p' | wc -c )" >> "$GITHUB_ENV"
+
+    # If some tests previously failed, i.e., a non-empty cache exists, run pytest --last-failed
+    - name: Run only --last-failed
+      id: last_failed
+      if: |
+        always() &&
+        env.CACHE_OUTPUT_LENGTH > 5
+      run: |
+        pytest --last-failed ${{ inputs.pytest-args }}
+
+    # If 'pytest --last-failed' was skipped (i.e. no entries in cache), or succeeded
+    # (i.e. last-failed tests pass again), run all tests with a clean cache
+    - name: Run all tests
+      id: all_tests
+      if: |
+        always() &&
+        ( steps.last_failed.outcome == 'success' || steps.last_failed.outcome == 'skipped' )
+      run: |
+        pytest --cache-clear ${{ inputs.pytest-args }}
+
+    # Save pytest cache for future runs
+    - name: Update pytest cache
+      uses: actions/cache/save@v3
+      if: always()
+      with:
+        path: .pytest_cache
+        key: pytest-cache-${{github.event.number}}-${{github.run_id}}
