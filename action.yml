@@ -1,5 +1,9 @@
 name: pytest --last-failed
 description: "Run pytest with --last-failed if the previous run had failed tests"
+author: '@sjvrijn'
+branding:
+  icon: 'repeat'
+  color: 'blue'
 
 inputs:
   pytest-args:
