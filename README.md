@@ -20,7 +20,7 @@ Then, if your workflow currently contains a `pytest` step as follows:
 you can replace it with:
 ```
   - name: pytest
-    uses: sjvrijn/pytest-last-failed@v1
+    uses: sjvrijn/pytest-last-failed@v2
     with:
       pytest-args: '--my --pytest --arguments'
 ```
