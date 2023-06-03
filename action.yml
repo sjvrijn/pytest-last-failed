@@ -14,14 +14,29 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # Each job created by a matrix should get its own cache
+    # If you know a better way to has the `matrix` object, please submit a PR!!!
+    - name: Create hash for current matrix job
+      run: |
+        MY_STRING=$(cat << EOF
+        ${{ toJson(matrix) }}
+        EOF
+        )
+        MY_STRING="${MY_STRING//'%'/'%25'}"
+        MY_STRING="${MY_STRING//$'\n'/'%0A'}"
+        MY_STRING="${MY_STRING//$'\r'/'%0D'}"
+        echo "$MY_STRING" > matrix.json
+        echo "MATRIX_HASH=$(md5sum matrix.json | cut -d' ' -f1)" >> $GITHUB_ENV
+      shell: bash
+
     # Initial restore of cache, if it exists
     - uses: actions/cache/restore@v3
       id: cache
       with:
         path: .pytest_cache
-        key: pytest-cache-${{github.event.number}}
+        key: pytest-cache-${{github.event.number}}-${{env.MATRIX_HASH}}
         restore-keys:
-          pytest-cache-${{github.event.number}}-
+          pytest-cache-${{github.event.number}}-${{env.MATRIX_HASH}}-
 
     # Determine if pytests's lastfailed cache contains any entries
     - name: Check cache length
@@ -56,4 +71,4 @@ runs:
       if: always()
       with:
         path: .pytest_cache
-        key: pytest-cache-${{github.event.number}}-${{github.run_id}}
+        key: pytest-cache-${{github.event.number}}-${{env.MATRIX_HASH}}-${{github.run_id}}
