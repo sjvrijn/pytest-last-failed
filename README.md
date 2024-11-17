@@ -25,7 +25,8 @@ you can replace it with:
       pytest-args: '--my --pytest --arguments'
 ```
 
-That's all!
+That's all! Note that this means you don't have to add the `--last-failed`
+argument yourself, that's taken care of by using this action.
 
 ## Explanation
 For any first run, it will always run the entire test suite. On subsequent runs,

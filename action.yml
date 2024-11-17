@@ -30,7 +30,7 @@ runs:
       shell: bash
 
     # Initial restore of cache, if it exists
-    - uses: actions/cache/restore@v3
+    - uses: actions/cache/restore@v4
       id: cache
       with:
         path: .pytest_cache
@@ -67,7 +67,7 @@ runs:
 
     # Save pytest cache for future runs
     - name: Update pytest cache
-      uses: actions/cache/save@v3
+      uses: actions/cache/save@v4
       if: always()
       with:
         path: .pytest_cache
