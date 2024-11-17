@@ -7,9 +7,17 @@ branding:
 
 inputs:
   pytest-args:
-    description: "Arguments to be passed on to pytest"
+    description: >
+      Arguments to be passed on to pytest
     required: false
     default: ''
+  run-all-on-success:
+    description: >
+      Whether to perform a full run of the test-suite once any previously failed
+      tests pass again. This may catch any unintended side-effects of fixing the
+      previously failed tests, at the cost of running the entire suite again.
+    required: false
+    default: false
 
 runs:
   using: "composite"
@@ -77,7 +85,9 @@ runs:
       id: all_tests
       if: |
         always() &&
-        ( steps.last_failed.outcome == 'success' || steps.last_failed.outcome == 'skipped' )
+        ( steps.last_failed.outcome == 'skipped'
+          || ( steps.last_failed.outcome == 'success' && inputs.run-all-on-success )
+        )
       run: |
         pytest --cache-clear ${{ inputs.pytest-args }}
       shell: bash
