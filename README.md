@@ -20,9 +20,16 @@ Then, if your workflow currently contains a `pytest` step as follows:
 you can replace it with:
 ```
   - name: pytest
-    uses: sjvrijn/pytest-last-failed@v2
+    uses: sjvrijn/pytest-last-failed@v3
     with:
+      # Additional arguments to be passed to pytest
       pytest-args: '--my --pytest --arguments'
+
+      # Whether to perform a full run of the test-suite once any previously failed
+      # tests pass again. This may catch any unintended side effects of fixing the
+      # previously failed tests, at the cost of running the entire suite again.
+      # Default: false
+      run-all-on-success: ''
 ```
 
 That's all! Note that this means you don't have to add the `--last-failed`
@@ -31,17 +38,20 @@ argument yourself, that's taken care of by using this action.
 ## Explanation
 For any first run, it will always run the entire test suite. On subsequent runs,
 if the pytest cache indicates any last-failed tests, it will run `pytest
---last-failed` instead. If that run succeded, i.e., all previously failed tests
-now pass again, then the whole test suite will be run again.
+--last-failed` instead.
 
-Or in pseudo-code:
+If that run succeded, i.e., all previously failed tests now pass again, the
+`run-all-on-success` flag can be set to perform another run of the whole test
+suite to check for any unintended side effects of the implemented fixes.
+
+In pseudo-code:
 ```python
 if not cache.has_last_failed_entries():
     pytest --cache-clear $PYTEST-ARGS
 else:
     result = $( pytest --last-failed $PYTEST-ARGS )
 
-    if result == 'success':
+    if result == 'success' and $RUN-ALL-ON-SUCCESS:
         pytest --cache-clear $PYTEST-ARGS
 ```
 
