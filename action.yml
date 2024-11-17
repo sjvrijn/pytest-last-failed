@@ -38,7 +38,24 @@ runs:
         restore-keys:
           pytest-cache-${{github.event.number}}-${{env.MATRIX_HASH}}-
 
-    # Determine if pytests's lastfailed cache contains any entries
+    # Determine if pytests's lastfailed cache contains any entries.
+    #
+    # Specifically, we assume the output of the command
+    # $ pytest --collect-only -qqq --no-header --no-summary --cache-show cache/lastfailed
+    # is in the following format:
+    #
+    # > cachedir: <CACHE_DIR>
+    # > ----------------------------------------- cache values for 'cache/lastfailed' ------------------------------------------
+    # > cache/lastfailed contains:
+    # >  {...}
+    #
+    # If no tests have previously failed, an empty dictionary will be displayed
+    # as shown above. This line will then consist of (at least) 5 bytes: two
+    # spaces, two curly braces and an endline.
+    #
+    # The command below takes the fourth line of this output and counts the
+    # number of bytes. If it consists of more than 5 bytes, at least one failed
+    # test is being reported.
     - name: Check cache length
       run: |
         echo "CACHE_OUTPUT_LENGTH=$( pytest --collect-only -qqq --no-header --no-summary --cache-show cache/lastfailed | sed -n '4 p' | wc -c )" >> "$GITHUB_ENV"
