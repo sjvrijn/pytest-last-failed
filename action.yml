@@ -79,6 +79,17 @@ runs:
         pytest --last-failed ${{ inputs.pytest-args }}
       shell: bash
 
+    - name: debug
+      id: debug
+      if: always()
+      run: |
+        echo ${{ steps.last_failed.outcome }}
+        echo ${{ inputs.run-all-on-success }}
+        echo ${{ steps.last_failed.outcome == 'skipped' }}
+        echo ${{ steps.last_failed.outcome == 'success' }}
+        echo ${{( steps.last_failed.outcome == 'success' && inputs.run-all-on-success )}}
+
+
     # If 'pytest --last-failed' was skipped (i.e. no entries in cache), or succeeded
     # (i.e. last-failed tests pass again), run all tests with a clean cache
     - name: Run all tests
@@ -89,9 +100,6 @@ runs:
           || ( steps.last_failed.outcome == 'success' && inputs.run-all-on-success )
         )
       run: |
-        echo ${{ steps.last_failed.outcome }}
-        echo ${{ inputs.run-all-on-success }}
-        echo ${{( steps.last_failed.outcome == 'success' && inputs.run-all-on-success )}}
         pytest --cache-clear ${{ inputs.pytest-args }}
       shell: bash
 
