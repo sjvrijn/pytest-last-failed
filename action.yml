@@ -83,11 +83,12 @@ runs:
       id: debug
       if: always()
       run: |
-        echo ${{ steps.last_failed.outcome }}
-        echo ${{ inputs.run-all-on-success }}
-        echo ${{ steps.last_failed.outcome == 'skipped' }}
-        echo ${{ steps.last_failed.outcome == 'success' }}
-        echo ${{( steps.last_failed.outcome == 'success' && inputs.run-all-on-success )}}
+        echo "last_failed.outcome: ${{ steps.last_failed.outcome }}"
+        echo "outcome == skipped?  ${{ steps.last_failed.outcome == 'skipped' }}"
+        echo "outcome == success?  ${{ steps.last_failed.outcome == 'success' }}"
+        echo "run-all-on-success:  ${{ inputs.run-all-on-success }}"
+        echo "success && runall?   ${{ ( steps.last_failed.outcome == 'success' && inputs.run-all-on-success ) }}"
+        echo "success && runall?   ${{ ( steps.last_failed.outcome == 'skipped' || ( steps.last_failed.outcome == 'success' && inputs.run-all-on-success ) ) }}"
       shell: bash
 
     # If 'pytest --last-failed' was skipped (i.e. no entries in cache), or succeeded
